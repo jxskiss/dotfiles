@@ -1,0 +1,46 @@
+# -*-mode:gitconfig-*- vim:ft=gitconfig
+
+# ~/.gitconfig
+# See https://git-scm.com/docs/git-config
+
+[alias]
+	acommit = commit --amend --no-edit
+
+	pullrebasemaster = pull -r origin master
+
+	fetchresethard = "!f() { git fetch ${1} && git reset --hard ${1}/${2}; }; f"
+
+	# Deletes branches which match a pattern.
+	deletebranches = "!f() { git branch | grep ${1} | xargs git branch -D; }; f"
+
+	# Removes the old tag with this name and tag the latest commit with it.
+    retag = "!f() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; f"
+
+	# Undos commit and leaves files (only for non-public commits).
+	uncommit = reset --soft HEAD^
+
+	# Commits as Work in Progress.
+	wip = commit -am "WIP"
+
+[credential]
+	helper = store
+
+[core]
+    # Disable line endings output conversion.
+    autocrlf = input
+
+    # Store global exclusions into a custom file.
+    excludesfile = ~/.gitignore_global
+
+    # Make `git rebase` safer on macOS.
+    # See http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/
+    trustctime = false
+
+[fetch]
+    # Remove any remote-tracking references that no longer exist on the remote.
+    prune = true
+
+
+[include]
+    # Include extra configuration (if exists).
+    path = .gitconfig_local
