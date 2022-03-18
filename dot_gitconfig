@@ -40,6 +40,9 @@
     # Remove any remote-tracking references that no longer exist on the remote.
     prune = true
 
+[pull]
+    ff = only
+
 
 [include]
     # Include extra configuration (if exists).

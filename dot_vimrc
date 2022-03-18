@@ -1,0 +1,189 @@
+" Vim configuration file, using under Windows or Linux.
+
+colorscheme evening
+
+set nocompatible    " No compatiable with vi
+set cmdheight=1     " Set commond line height
+set history=200     " Nubers of command line history
+set nobackup        " no backup
+
+set backspace=indent,eol,start
+set ruler           " Show the cursor position all the time
+set number          " Show line number
+
+set expandtab       " Use space to replace tab
+set shiftwidth=4    " Autoindent width
+set tabstop=4       " Tab width
+set softtabstop=4   " Mix space and tab to keep the text display beautifully
+
+set incsearch       " Incremental search
+set hlsearch        " High light the matched content
+set ignorecase      " Do case insensitive matching
+
+set showcmd         " Show (partial) command in command line
+set showmatch       " Show matching brackets
+set smartcase       " Do smart case matching
+set autowrite       " Automatically save before commands line :next and :make
+set hidden          " Hide buffers when they are abandoned
+
+" set $HOME to $VIM/home on windows
+if has("win32")
+    let $HOME=$VIM."/home"
+endif
+
+" Crypt method
+set cm=blowfish
+
+" encoding
+set encoding=utf-8
+set fileencoding=utf-8
+set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,latin1
+
+if !has('gui_running')  " None GUI settings
+    " In Windows console Vim, set encoding to utf-8 will cause mess display
+    if has('win32')
+        set encoding=cp936
+    endif
+    " Change encoding according to the current console code page
+    if &termencoding != '' && &termencoding != &encoding
+      let &encoding=&termencoding
+      let &fileencodings=&fileencodings . ',' . &encoding
+    endif
+    " English messages only
+    language messages en_US
+    " Enable mouse usage in terminal and hide the mouse when typing text.
+    if has("mouse")
+        set mouse=a
+        set mousehide
+    endif
+else    " GUI
+    set go-=T           " Don't use toolbar
+    if has("win32")
+        source $VIMRUNTIME/mswin.vim
+        behave mswin
+        " set guifont=DejaVu_Sans_Mono:h11:cANSI
+        " set guifontwide=MingLiU:h11
+        " Yahei Mono: Consolas + Microsoft Yahei
+        " NOTE: the Consolas part has been tweeked, use this font instead of
+        " the original Consolas for english characters (cANSI)
+        set guifont=Yahei_Mono:h10.5:cANSI
+        set guifontwide=Yahei_Mono:h10.5
+        language messages zh_CN.utf-8
+    endif
+endif
+
+if has("multi_byte")
+    set formatoptions+=mM
+    set ambiwidth=double
+endif
+
+map <S-Insert> <MiddleMouse>
+map! <S-Insert> <MiddleMouse>
+
+" Don't use Ex mode, use Q for formatting.
+map Q gq
+
+" vundle
+filetype off        " required!
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+" let Vundle manage Vundle, required!
+Plugin 'gmarik/Vundle.vim'
+" original repos on github
+Plugin 'vim-pandoc/vim-pandoc'
+Plugin 'vim-pandoc/vim-pandoc-syntax'
+Plugin 'vim-pandoc/vim-pandoc-after'
+Plugin 'godlygeek/tabular'
+Plugin 'scrooloose/nerdtree'
+Plugin 'jamessan/vim-gnupg'
+Plugin 'PProvost/vim-ps1'
+" vim-scripts repos
+Plugin 'vim-scripts/indentpython.vim'
+Plugin 'minibufexpl.vim'
+Plugin 'FencView.vim'
+Plugin 'SuperTab'
+Plugin 'taglist.vim'
+Plugin 'grep.vim'
+Plugin 'VOoM'
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+" filetype plugin indent on    " required
+" To ignore plugin indent changes, instead use:
+"filetype plugin on
+"
+" Brief help
+" :PluginList       - lists configured plugins
+" :PluginInstall    - installs plugins; append `!` to update or just :PluginUpdate
+" :PluginSearch foo - searches for foo; append `!` to refresh local cache
+" :PluginClean      - confirms removal of unused plugins; append `!` to auto-approve removal
+"
+" see :h vundle for more details or wiki for FAQ
+" Put your non-Plugin stuff after this line
+
+if has("autocmd")
+    filetype plugin indent on
+    syntax on
+
+    " Jump to the last known cursor position when editing a file.
+    au BufReadPost * if line("'\"") > 0 && line("'\"") <= line("$") 
+                \| exe "normal g'\"" | endif
+else
+    set autoindent  " Always set autoindenting on
+endif
+
+" statusline
+set statusline=%<%f\ %h%m\ %r[%{&fileformat},%{&fileencoding},%{&bomb?\"bom\":\"nobom\"}]%y%=%-14.(%l,%c%V%)\ --%P--
+set laststatus=2 
+
+" Special settings for Python
+" if has("autocmd")
+"     autocmd FileType python setlocal et | setlocal sta | setlocal sw=4
+"     autocmd FileType python set omnifunc=pythoncomplete#Complete
+"     if has("win32")
+"         let g:pydiction_location = $VIM.'/vimfiles/ftplugin/complete-dict'
+"     elseif has("unix")
+"         let g:pydiction_location = '~/.vim/ftplugin/complete-dict'
+"     endif
+" endif
+
+" python virtualenv support
+if has('python')
+py << EOF
+import sys
+import os
+if 'VIRTUAL_ENV' in os.environ:
+    project_env_dir = os.environ['VIRTUAL_ENV']
+    activate_this = os.path.join(project_env_dir, 'bin', 'activate_this.py')
+    execfile(activate_this, dict(__file__=activate_this))
+EOF
+endif
+
+" Haskell mode, see http://projects.haskell.org/haskellmode-vim/
+au BufEnter *.hs compiler ghc
+let g:haddock_browser = "C:/Program Files/Internet Explorer/iexplore.exe"
+
+" MiniBufExplorer
+let g:miniBufExplMapWindowsNavArrows = 1
+let g:miniBufExplMapCTabSwitchBufs = 1
+let g:miniBufExplModSelTarget = 1
+
+let mapleader = ","
+" ,t ,d : insert current timestamp and date.
+nnoremap <leader>t :let @t=strftime("%Y-%m-%d %H:%M:%S")<CR>"tp
+nnoremap <leader>d :let @t=strftime("%Y-%m-%d")<CR>"tp
+" ,x HTML Tidy
+vmap <leader>x :!tidy -q -i --show-errors 0<CR>
+
+" Move the current line or selected lines in visual mode up or down.
+nnoremap <C-j> mz:m+<CR>`z==
+xnoremap <C-j> :m'>+<CR>gv=gv
+nnoremap <C-k> mz:m-2<CR>`z==
+xnoremap <C-k> :m'<-2<CR>gv=gv
+
+" Grep
+nnoremap <silent> <F3> :Grep<CR>
+
+" FencView automatic encoding detection (Vim script #1708)
+let $FENCVIEW_TELLENC="tellenc"
+let fencview_autodetect=1
