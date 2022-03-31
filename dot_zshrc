@@ -200,12 +200,16 @@ export NVM_DIR="$HOME/.nvm"
 
 # Enable Python version management.
 if command -v pyenv > /dev/null; then
+    eval "$(pyenv init --path)"
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
 fi
 
 # Enable Go version management.
 [[ -s "$HOME/.gvm/scripts/gvm" ]] && source "$HOME/.gvm/scripts/gvm"
+
+# Rust
+[[ -s "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
 
 # Varia
