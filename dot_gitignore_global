@@ -8,13 +8,26 @@
 # See https://git-scm.com/docs/gitignore
 
 *~
+
+# platform specific
 .DS_Store
-.git/
-.idea/
-.vscode/
-*.pyc
 Thumbs.db
+
+# Python specific
 venv/
 __pycache__/
+*.pyc
+*.pyo
+
+# nodejs
 node_modules/
+
+# temporary files
 **/__tmpbin_*
+*.log
+*.test
+
+# IDE files
+.idea/
+.vscode/
+
