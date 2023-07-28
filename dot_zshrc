@@ -224,3 +224,4 @@ export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 # -----------------------------------------------------------------------------
 
 [[ -s "$HOME/.shell_env" ]] && source "$HOME/.shell_env"
+[[ -s "$HOME/.zshrc_local" ]] && source "$HOME/.zshrc_local"
