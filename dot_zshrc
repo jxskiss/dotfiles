@@ -10,6 +10,8 @@
 # shellcheck source=/dev/null
 # shellcheck disable=SC2034
 
+export SHELL="$(which zsh)"
+
 # Hide default user from local prompt.
 export DEFAULT_USER="${USER}"
 
@@ -116,6 +118,14 @@ if [[ "$OSTYPE" =~ ^darwin ]]; then
     )
 fi
 # (debian, dnf, fedora, ubuntu)
+
+# Enable zsh-completions.
+# Note:
+# 1. adding it as a regular Oh My ZSH! plugin will not work properly (see https://github.com/zsh-users/zsh-completions/issues/603).
+# 2. add before source "$ZSH/oh-my-zsh.sh".
+if [ -d "$ZSH/custom/plugins/zsh-completions/src" ]; then
+    fpath+=$ZSH/custom/plugins/zsh-completions/src
+fi
 
 # Load theme Powerlevel10K
 if test "${ZSH_THEME#*powerlevel10k}" != "$ZSH_THEME"; then
