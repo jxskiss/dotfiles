@@ -93,7 +93,6 @@ HIST_STAMPS="yyyy-mm-dd"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-    autojump
     git
     golang
     python
@@ -235,3 +234,4 @@ export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 
 [[ -s "$HOME/.shell_env" ]] && source "$HOME/.shell_env"
 [[ -s "$HOME/.zshrc_local" ]] && source "$HOME/.zshrc_local"
+
