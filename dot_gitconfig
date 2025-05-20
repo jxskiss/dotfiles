@@ -4,26 +4,26 @@
 # See https://git-scm.com/docs/git-config
 
 [alias]
-	acommit = commit --amend --no-edit
+    acommit = commit --amend --no-edit
 
-	pullrebasemaster = pull -r origin master
+    pullrebasemaster = pull -r origin master
 
-	fetchresethard = "!f() { git fetch ${1} && git reset --hard ${1}/${2}; }; f"
+    fetchresethard = "!f() { git fetch ${1} && git reset --hard ${1}/${2}; }; f"
 
-	# Deletes branches which match a pattern.
-	deletebranches = "!f() { git branch | grep ${1} | xargs git branch -D; }; f"
+    # Deletes branches which match a pattern.
+    deletebranches = "!f() { git branch | grep ${1} | xargs git branch -D; }; f"
 
-	# Removes the old tag with this name and tag the latest commit with it.
-    retag = "!f() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; f"
+    # Removes the old tag with this name and tag the latest commit with it.
+    etag = "!f() { git tag -d $1 && git push origin :refs/tags/$1 && git tag $1; }; f"
 
-	# Undos commit and leaves files (only for non-public commits).
-	uncommit = reset --soft HEAD^
+    # Undos commit and leaves files (only for non-public commits).
+    uncommit = reset --soft HEAD^
 
-	# Commits as Work in Progress.
-	wip = commit -am "WIP"
+    # Commits as Work in Progress.
+    wip = commit -am "WIP"
 
 [credential]
-	helper = store
+    helper = store
 
 [core]
     # Disable line endings output conversion.
