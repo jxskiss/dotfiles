@@ -108,8 +108,6 @@ plugins=(
     rsync                   # Aliases for `rsync` command
     systemadmin             # Utilities for SysAdmins.
     z                       # Tracks your most used directories.
-    zsh-autosuggestions     # Command suggestions based on history and completions (https://github.com/zsh-users/zsh-autosuggestions)
-    zsh-syntax-highlighting # Fish shell like syntax highlighting (https://github.com/zsh-users/zsh-syntax-highlighting)
 )
 if [[ "$OSTYPE" =~ ^darwin ]]; then
     plugins+=(
@@ -133,6 +131,16 @@ fi
 
 # Load Oh My Zsh
 . "$ZSH"/oh-my-zsh.sh
+
+
+# Load custom plugins
+
+# Command suggestions based on history and completions (https://github.com/zsh-users/zsh-autosuggestions)
+# brew install zsh-syntax-highlighting
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Fish shell like syntax highlighting (https://github.com/zsh-users/zsh-syntax-highlighting)
+# brew install zsh-autosuggestions
+source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # User configuration
 
