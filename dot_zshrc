@@ -119,14 +119,6 @@ if [[ "$OSTYPE" =~ ^darwin ]]; then
 fi
 # (debian, dnf, fedora, ubuntu)
 
-# Enable zsh-completions.
-# Note:
-# 1. adding it as a regular Oh My ZSH! plugin will not work properly (see https://github.com/zsh-users/zsh-completions/issues/603).
-# 2. add before source "$ZSH/oh-my-zsh.sh".
-if [ -d "$ZSH/custom/plugins/zsh-completions/src" ]; then
-    fpath+=$ZSH/custom/plugins/zsh-completions/src
-fi
-
 # Load theme Powerlevel10K
 if test "${ZSH_THEME#*powerlevel10k}" != "$ZSH_THEME"; then
     [ -f "$HOME"/.p10k.zsh ] && \. "$HOME"/.p10k.zsh
@@ -140,10 +132,23 @@ source "$ZSH"/oh-my-zsh.sh
 
 # Command suggestions based on history and completions (https://github.com/zsh-users/zsh-autosuggestions)
 # brew install zsh-syntax-highlighting
-source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+if type brew &>/dev/null; then
+    source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
 # Fish shell like syntax highlighting (https://github.com/zsh-users/zsh-syntax-highlighting)
 # brew install zsh-autosuggestions
-source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+if type brew &>/dev/null; then
+    source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
+# zsh-completions
+# brew install zsh-completions
+if type brew &>/dev/null; then
+    source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    FPATH=$(brew --prefix)/share/zsh-completions:$FPATH
+
+    autoload -Uz compinit
+    compinit
+fi
 
 # User configuration
 
@@ -214,12 +219,17 @@ if [ -s "$ASDF_DIR/completions" ]; then
     compinit
 fi
 
-# Enable Node Version Manager.
+# Enable Node Version Manager and Node completions.
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-
-# Provide Node completions.
 [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+
+# bun
+if [ -s "$HOME/.bun/_bun" ]; then
+    source "$HOME/.bun/_bun"
+    export BUN_INSTALL="$HOME/.bun"
+    export PATH="$BUN_INSTALL/bin:$PATH"
+fi
 
 # Enable Python version management.
 if command -v pyenv > /dev/null; then
@@ -249,5 +259,5 @@ export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 [[ -s "$HOME/.shell_env" ]] && source "$HOME/.shell_env"
 [[ -s "$HOME/.zshrc_local" ]] && source "$HOME/.zshrc_local"
 
+# iTerm2 shell integration
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
-
