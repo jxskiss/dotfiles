@@ -13,7 +13,7 @@ web:*.{html,css,js}*
 --no-ignore
 
 # Exclude directories.
---glob=!{.git,.svn,node_modules,tealdeer,Trash,vendor}
+--glob=!{.git,.svn,node_modules,vendor,.Trash,.DS_Store}
 
 # Exclude file types.
 --glob=!*.{lock}
