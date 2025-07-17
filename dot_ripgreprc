@@ -1,0 +1,38 @@
+# Don't let ripgrep vomit really long lines to my terminal, and show a preview.
+--max-columns=150
+--max-columns-preview
+
+# Add my 'web' type.
+--type-add
+web:*.{html,css,js}*
+
+# Search hidden files / directories (e.g. dotfiles) by default
+--hidden
+
+# Don't respect ignore files (.gitignore, .ignore, etc.).
+--no-ignore
+
+# Exclude directories.
+--glob=!{.git,.svn,node_modules,tealdeer,Trash,vendor}
+
+# Exclude file types.
+--glob=!*.{lock}
+
+# Exclude files.
+--glob=!{package-lock.json}
+
+# Searches case insensitively.
+--smart-case
+
+# Sort by file path.
+--sort=path
+
+# Mimic ag's color output.
+--colors=line:fg:yellow
+--colors=line:style:bold
+--colors=path:fg:green
+--colors=path:style:bold
+--colors=match:fg:black
+--colors=match:bg:yellow
+--colors=match:style:nobold
+
