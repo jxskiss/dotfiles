@@ -46,7 +46,7 @@ brew install coreutils wget htop
 brew install zsh-autosuggestions zsh-completions zsh-syntax-highlighting
 brew install fish pandoc ripgrep
 brew isntall go gojq caddy
-brew install uv python3 ipython
+brew install uv
 # fix: omz_urlencode:5: command not found: pygmentize
 # fix: zsh: command not found: pygmentize
 brew install pygments
@@ -83,4 +83,8 @@ More development tools
 ```bash
 # bun, for macOS, Linux, and WSL
 curl -fsSL https://bun.sh/install | bash
+
+# python and IPython
+uv python install --default --preview 3.13
+uv pip install --system --break-system-packages ipython numpy pandas matplotlib duckdb
 ```
