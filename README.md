@@ -9,17 +9,10 @@ https://github.com/twpayne/chezmoi/
 Setup homebrew and pip source mirror
 
 ```bash
-cat > ~/.shell_env<< EOF
-# Set non-default Git remotes for Homebrew/brew and Homebrew/homebrew-core.
-export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
-export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git"
-export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
-export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
-export HOMEBREW_PIP_INDEX_URL="https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
-[[ -s "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
-EOF
+# Setup mirrors
+curl -fsSL https://raw.githubusercontent.com/jxskiss/dotfiles/master/dot_proxy_env > ~/.proxy_env
+source ~/.proxy_env
 
-# Set pip using thinghua mirror
 mkdir -p ~/.config/pip ~/.config/uv
 cat > ~/.config/pip/pip.conf<< EOF
 [global]
@@ -36,7 +29,9 @@ Install homebrew and essential packages
 
 ```bash
 # Install homebrew
-source ~/.shell_env
+source ~/.proxy_env
+[[ -s "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+
 git clone --depth=1 https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/install.git brew-install
 /bin/bash brew-install/install.sh
 rm -rf brew-install
@@ -52,18 +47,10 @@ brew install uv
 brew install pygments
 ```
 
-Install and configure v2ray
+Install and configure Xray-core
 
-```bash
-brew tap v2raya/v2raya
-brew install v2raya
+See [https://github.com/jxskiss/xray-config-files]()
 
-# run on terminal
-v2raya --lite
-
-# run as a brew service
-brew services start v2raya
-```
 
 Install oh-my-zsh
 

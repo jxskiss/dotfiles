@@ -256,7 +256,8 @@ export RIPGREP_CONFIG_PATH="$HOME/.ripgreprc"
 # Includes
 # -----------------------------------------------------------------------------
 
-[[ -s "$HOME/.shell_env" ]] && source "$HOME/.shell_env"
+[[ -s "$HOME/.shellenv_local" ]] && source "$HOME/.shellenv_local"
+[[ -s "$HOME/.proxy_env" ]] && source "$HOME/.proxy_env"
 [[ -s "$HOME/.zshrc_local" ]] && source "$HOME/.zshrc_local"
 
 # iTerm2 shell integration
