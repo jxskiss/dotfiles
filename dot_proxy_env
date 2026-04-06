@@ -1,0 +1,43 @@
+# homebrew mirror
+export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
+export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git"
+export HOMEBREW_API_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles/api"
+export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles"
+export HOMEBREW_PIP_INDEX_URL="https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+
+# Go
+export GO111MODULE=on
+export GOPROXY=https://goproxy.cn,direct
+export GOSUMDB=sum.golang.google.cn
+
+# Rust
+export RUSTUP_DIST_SERVER="https://rsproxy.cn"
+export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"
+
+# SOCKS5 and HTTP proxy
+proxy_on() {
+  if [ -n "${_proxy_socks5:-}" ]; then
+    export all_proxy="socks5://${_proxy_socks5}"
+    export ALL_PROXY="$all_proxy"
+  else
+    echo "ERROR: socks5 proxy not available, please export _proxy_socks5 in ~/.shellenv_local"
+  fi
+  if [ -n "${_proxy_http:-}" ]; then
+    export http_proxy="http://${_proxy_http}"
+    export https_proxy="$http_proxy"
+    export HTTP_PROXY="$http_proxy"
+    export HTTPS_PROXY="$https_proxy"
+  else
+    echo "ERROR: http(s) proxy not available, please export _proxy_http in ~/.shellenv_local"
+  fi
+  export no_proxy="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,::1,fc00::/7,fe80::/10,.local"
+  export NO_PROXY="$no_proxy"
+}
+proxy_off() {
+  unset http_proxy https_proxy all_proxy
+  unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
+  unset no_proxy NO_PROXY
+}
+proxy_status() {
+  env | grep -iE "(all_proxy|http_proxy|https_proxy|no_proxy)"
+}
