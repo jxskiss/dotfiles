@@ -1,3 +1,5 @@
+# -*-mode:sh-*- vim:ft=shell-script
+
 # homebrew mirror
 export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"
 export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/homebrew-core.git"
@@ -7,8 +9,8 @@ export HOMEBREW_PIP_INDEX_URL="https://mirrors.tuna.tsinghua.edu.cn/pypi/web/sim
 
 # Go
 export GO111MODULE=on
-export GOPROXY=https://goproxy.cn,direct
-export GOSUMDB=sum.golang.google.cn
+export GOPROXY="${GOPROXY:-https://goproxy.cn,direct}"
+export GOSUMDB="${GOSUMDB:-sum.golang.google.cn}"
 
 # Rust
 export RUSTUP_DIST_SERVER="https://rsproxy.cn"
@@ -20,7 +22,7 @@ proxy_on() {
     export all_proxy="socks5://${_proxy_socks5}"
     export ALL_PROXY="$all_proxy"
   else
-    echo "ERROR: socks5 proxy not available, please export _proxy_socks5 in ~/.shellenv_local"
+    echo "WARN: socks5 proxy not available, please export _proxy_socks5 in ~/.shellenv_local"
   fi
   if [ -n "${_proxy_http:-}" ]; then
     export http_proxy="http://${_proxy_http}"
@@ -28,9 +30,9 @@ proxy_on() {
     export HTTP_PROXY="$http_proxy"
     export HTTPS_PROXY="$https_proxy"
   else
-    echo "ERROR: http(s) proxy not available, please export _proxy_http in ~/.shellenv_local"
+    echo "WARN: http(s) proxy not available, please export _proxy_http in ~/.shellenv_local"
   fi
-  export no_proxy="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,::1,fc00::/7,fe80::/10,.local"
+  export no_proxy="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,::1,fc00::/7,fe80::/10,.local${no_proxy:+,$no_proxy}${NO_PROXY:+,$NO_PROXY}"
   export NO_PROXY="$no_proxy"
 }
 proxy_off() {

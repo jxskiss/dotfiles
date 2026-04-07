@@ -26,6 +26,7 @@ export PATH=$HOME/bin:$HOME/.local/bin:$HOME/go/bin:/usr/local/bin:$PATH
 
 # Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
+export ZSH_CUSTOM="$ZSH/custom"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time Oh My Zsh is loaded, in which case,
@@ -112,21 +113,40 @@ plugins=(
     systemadmin             # Utilities for SysAdmins.
     z                       # Tracks your most used directories.
 )
-if [[ "$OSTYPE" =~ ^darwin ]]; then
-    plugins+=(
-        macos               # Utilities for macOS
-    )
+
+# Add OS-specific Oh My Zsh plugins when available.
+_omz_add_plugin_if_exists() {
+    local _plugin="$1"
+    if [[ -d "$ZSH/plugins/$_plugin" || -d "$ZSH_CUSTOM/plugins/$_plugin" ]]; then
+        plugins+=("$_plugin")
+    fi
+}
+if [[ "$OSTYPE" == darwin* ]]; then
+    _omz_add_plugin_if_exists "macos"
+elif [[ "$OSTYPE" == linux* ]]; then
+    if [[ -r /etc/os-release ]]; then
+        local _os_id
+        _os_id="$(. /etc/os-release; printf '%s' "$ID")"
+        case "$_os_id" in
+            ubuntu)
+                _omz_add_plugin_if_exists "ubuntu"
+                ;;
+            debian)
+                _omz_add_plugin_if_exists "debian"
+                ;;
+            fedora)
+                _omz_add_plugin_if_exists "dnf"
+                ;;
+        esac
+        unset _os_id
+    fi
 fi
-# (debian, dnf, fedora, ubuntu)
+unset -f _omz_add_plugin_if_exists
 
 # Load theme Powerlevel10K
 if test "${ZSH_THEME#*powerlevel10k}" != "$ZSH_THEME"; then
     [ -f "$HOME"/.p10k.zsh ] && \. "$HOME"/.p10k.zsh
 fi
-
-# Load Oh My Zsh
-source "$ZSH"/oh-my-zsh.sh
-
 
 # Load custom plugins
 
@@ -141,14 +161,15 @@ if type brew &>/dev/null; then
     source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 # zsh-completions
-# brew install zsh-completions
-if type brew &>/dev/null; then
-    source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-    FPATH=$(brew --prefix)/share/zsh-completions:$FPATH
-
-    autoload -Uz compinit
-    compinit
+# Install https://github.com/zsh-users/zsh-completions under directory $ZSH_CUSTOM/plugins
+if type brew &>/dev/null && [ -d "$ZSH_CUSTOM/plugins/zsh-completions/src" ]; then
+    fpath+=("$ZSH_CUSTOM/plugins/zsh-completions/src")
+    autoload -Uz compinit && compinit
 fi
+
+# Load Oh My Zsh
+source "$ZSH"/oh-my-zsh.sh
+
 
 # User configuration
 
