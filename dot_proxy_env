@@ -18,28 +18,59 @@ export RUSTUP_UPDATE_ROOT="https://rsproxy.cn/rustup"
 
 # SOCKS5 and HTTP proxy
 proxy_on() {
+  # Save original no_proxy exactly once per shell session
+  if [ -z "${_proxy_orig_no_proxy_saved:-}" ]; then
+    _proxy_orig_no_proxy="${no_proxy:-}${NO_PROXY:+${no_proxy:+,}$NO_PROXY}"
+    _proxy_orig_no_proxy_saved=1
+  fi
+
   if [ -n "${_proxy_socks5:-}" ]; then
-    export all_proxy="socks5://${_proxy_socks5}"
+    case "$_proxy_socks5" in
+      socks5://*|socks5h://*) export all_proxy="$_proxy_socks5" ;;
+      *) export all_proxy="socks5://${_proxy_socks5}" ;;
+    esac
     export ALL_PROXY="$all_proxy"
   else
     echo "WARN: socks5 proxy not available, please export _proxy_socks5 in ~/.shellenv_local"
   fi
+
   if [ -n "${_proxy_http:-}" ]; then
-    export http_proxy="http://${_proxy_http}"
+    case "$_proxy_http" in
+      http://*|https://*) export http_proxy="$_proxy_http" ;;
+      *) export http_proxy="http://${_proxy_http}" ;;
+    esac
     export https_proxy="$http_proxy"
     export HTTP_PROXY="$http_proxy"
     export HTTPS_PROXY="$https_proxy"
   else
     echo "WARN: http(s) proxy not available, please export _proxy_http in ~/.shellenv_local"
   fi
-  export no_proxy="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,::1,fc00::/7,fe80::/10,.local${no_proxy:+,$no_proxy}${NO_PROXY:+,$NO_PROXY}"
+
+  no_proxy="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,169.254.0.0/16,::1,fc00::/7,fe80::/10,.local${_proxy_orig_no_proxy:+,$_proxy_orig_no_proxy}"
+  export no_proxy
   export NO_PROXY="$no_proxy"
 }
 proxy_off() {
-  unset http_proxy https_proxy all_proxy
-  unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
-  unset no_proxy NO_PROXY
+  unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
+
+  # Restore original no_proxy instead of blindly unsetting
+  if [ -n "${_proxy_orig_no_proxy_saved:-}" ]; then
+    if [ -n "${_proxy_orig_no_proxy:-}" ]; then
+      export no_proxy="$_proxy_orig_no_proxy"
+      export NO_PROXY="$no_proxy"
+    else
+      unset no_proxy NO_PROXY
+    fi
+  else
+    unset no_proxy NO_PROXY
+  fi
 }
 proxy_status() {
-  env | grep -iE "(all_proxy|http_proxy|https_proxy|no_proxy)"
+  _proxy_out=$(env | grep -iE "(all_proxy|http_proxy|https_proxy|no_proxy)" | sort -i || true)
+  if [ -n "$_proxy_out" ]; then
+    echo "$_proxy_out"
+  else
+    echo "No proxy variables set."
+  fi
+  unset _proxy_out
 }
