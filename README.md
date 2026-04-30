@@ -37,11 +37,11 @@ git clone --depth=1 https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/install.gi
 rm -rf brew-install
 
 # Install essential packages
-brew install coreutils wget htop
-brew install zsh-autosuggestions zsh-completions zsh-syntax-highlighting
-brew install fish pandoc ripgrep
-brew isntall go gojq caddy
-brew install uv
+brew install coreutils wget htop \
+  powerlevel10k zsh-autosuggestions zsh-syntax-highlighting \
+  fish chezmoi ripgrep gojq caddy pandoc \
+  mise uv go
+
 # fix: omz_urlencode:5: command not found: pygmentize
 # fix: zsh: command not found: pygmentize
 brew install pygments
@@ -61,7 +61,6 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/too
 Apply chezmoi dotfiles
 
 ```bash
-brew install chezmoi
 chezmoi init --apply jxskiss
 ```
 
