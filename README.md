@@ -10,14 +10,17 @@ Setup homebrew and pip source mirror
 
 ```bash
 # Setup mirrors
+
 curl -fsSL https://raw.githubusercontent.com/jxskiss/dotfiles/master/dot_proxy_env > ~/.proxy_env
 source ~/.proxy_env
 
-mkdir -p ~/.config/pip ~/.config/uv
+mkdir -p ~/.config/pip
 cat > ~/.config/pip/pip.conf<< EOF
 [global]
 index-url = https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 EOF
+
+mkdir -p ~/.config/uv
 cat > ~/.config/uv/uv.toml<< EOF
 [[index]]
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
@@ -39,8 +42,8 @@ rm -rf brew-install
 # Install essential packages
 brew install coreutils wget htop \
   powerlevel10k zsh-autosuggestions zsh-syntax-highlighting \
-  fish chezmoi ripgrep gojq caddy pandoc \
-  mise uv go
+  iterm2 fish tmux chezmoi ripgrep gojq pandoc caddy duckdb \
+  mise uv
 
 # fix: omz_urlencode:5: command not found: pygmentize
 # fix: zsh: command not found: pygmentize
@@ -49,7 +52,7 @@ brew install pygments
 
 Install and configure Xray-core
 
-See [https://github.com/jxskiss/xray-config-files]()
+See https://github.com/jxskiss/xray-config-files/
 
 
 Install oh-my-zsh
@@ -70,7 +73,10 @@ More development tools
 # bun, for macOS, Linux, and WSL
 curl -fsSL https://bun.sh/install | bash
 
-# python and IPython
-uv python install --default --preview 3.13
-uv pip install --system --break-system-packages ipython numpy pandas matplotlib duckdb
+# Go, Python, etc.
+mise install
+
+# IPython repl
+cd ~/py-repl && uv lock && uv sync && cd ~/
 ```
+
