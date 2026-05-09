@@ -42,8 +42,9 @@ rm -rf brew-install
 # Install essential packages
 brew install coreutils wget htop \
   powerlevel10k zsh-autosuggestions zsh-syntax-highlighting \
-  iterm2 fish tmux chezmoi ripgrep gojq pandoc caddy duckdb \
-  mise uv
+  fish tmux chezmoi ripgrep gojq pandoc caddy \
+  mise uv \
+  iterm2 maccy
 
 # fix: omz_urlencode:5: command not found: pygmentize
 # fix: zsh: command not found: pygmentize
