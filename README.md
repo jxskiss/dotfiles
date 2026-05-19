@@ -36,11 +36,11 @@ source ~/.proxy_env
 [[ -s "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
 git clone --depth=1 https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/install.git brew-install
-/bin/bash brew-install/install.sh
+bash brew-install/install.sh
 rm -rf brew-install
 
 # Install essential packages
-brew install coreutils wget htop \
+brew install coreutils tree wget htop \
   powerlevel10k zsh-autosuggestions zsh-syntax-highlighting \
   fish tmux chezmoi ripgrep gojq pandoc caddy \
   mise uv \
@@ -59,7 +59,7 @@ See https://github.com/jxskiss/xray-config-files/
 Install oh-my-zsh
 
 ```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 ```
 
 Apply chezmoi dotfiles
@@ -78,6 +78,6 @@ curl -fsSL https://bun.sh/install | bash
 mise install
 
 # IPython repl
-cd ~/py-repl && uv lock && uv sync && cd ~/
+bash -c "cd ~/py-repl && uv lock && uv sync"
 ```
 
