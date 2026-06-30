@@ -1,4 +1,4 @@
-# -*-mode:sh-*- vim:ft=shell-script
+# -*-mode:sh-*- vim:ft=sh
 
 # homebrew mirror
 #export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.tuna.tsinghua.edu.cn/git/homebrew/brew.git"

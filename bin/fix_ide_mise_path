@@ -1,0 +1,4 @@
+# -*-mode:sh-*- vim:ft=zsh
+
+path=(${path:#$HOME/.local/share/mise/installs/go/*/bin})
+eval "$(mise activate zsh)"
