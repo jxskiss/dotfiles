@@ -19,6 +19,7 @@ fi
 # Setup PATH and development tools
 # -----------------------------------------------------------------------------
 export PATH=$HOME/bin:$HOME/.local/bin:$HOME/go/bin:$PATH
+export GOPATH=$HOME/go
 # PostgreSQL and TimescaleDB
 if type brew &>/dev/null; then
   pg_bin="$(brew --prefix)/opt/postgresql@17/bin"
