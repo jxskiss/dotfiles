@@ -9,6 +9,9 @@
 
 *~
 
+# secrets
+*.keytab
+
 # platform specific
 .DS_Store
 Thumbs.db
