@@ -1,0 +1,323 @@
+#!/usr/bin/env python3
+"""Create a Kerberos keytab when needed, then run kinit with it."""
+
+from __future__ import annotations
+
+import argparse
+import getpass
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+from pathlib import Path
+
+
+DEFAULT_KEYTAB = Path.home() / ".config" / "kerberos" / "client.keytab"
+DEFAULT_ENCTYPE = "aes256-cts-hmac-sha1-96"
+DEFAULT_KVNO = 1
+MIT_KTUTIL_MARKER = "addent"
+HEIMDAL_KTUTIL_MARKER = "--keytab="
+
+
+def require_command(name: str) -> None:
+    if shutil.which(name) is None:
+        raise SystemExit(f"Required command not found: {name}")
+
+
+def command_output(
+    args: list[str],
+    *,
+    input_text: str | None = None,
+    timeout: float | None = None,
+) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            args,
+            input=input_text,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return subprocess.CompletedProcess(
+            args,
+            124,
+            stdout=exc.stdout or "",
+            stderr=exc.stderr or "",
+        )
+
+
+def ktutil_help_text() -> str:
+    require_command("ktutil")
+    result = command_output(["ktutil", "--help"], input_text="quit\n", timeout=2)
+    return "\n".join(part for part in [result.stdout, result.stderr] if part)
+
+
+def detect_ktutil_flavor() -> str:
+    help_text = ktutil_help_text()
+    if MIT_KTUTIL_MARKER in help_text:
+        return "mit"
+    if HEIMDAL_KTUTIL_MARKER in help_text:
+        return "heimdal"
+
+    result = command_output(["ktutil"], input_text="help\nquit\n", timeout=2)
+    output = "\n".join(part for part in [result.stdout, result.stderr] if part)
+    if MIT_KTUTIL_MARKER in output:
+        return "mit"
+    if HEIMDAL_KTUTIL_MARKER in output:
+        return "heimdal"
+
+    result = command_output(["ktutil"], input_text="?\nquit\n", timeout=2)
+    output = "\n".join(part for part in [result.stdout, result.stderr] if part)
+    if MIT_KTUTIL_MARKER in output:
+        return "mit"
+    if HEIMDAL_KTUTIL_MARKER in output:
+        return "heimdal"
+
+    raise SystemExit(
+        "Unable to detect ktutil flavor. Expected MIT or Heimdal ktutil. "
+        "Re-run with `ktutil --help` to inspect the local ktutil behavior."
+    )
+
+
+def ensure_private_dir(path: Path) -> None:
+    if path.exists():
+        if not path.is_dir():
+            raise SystemExit(f"Keytab parent is not a directory: {path}")
+        mode = stat.S_IMODE(path.stat().st_mode)
+        if mode & 0o022:
+            raise SystemExit(
+                f"Refusing to use a keytab directory writable by group or others: "
+                f"{path} mode={mode:o}"
+            )
+        warn_if_permissive(path, "keytab directory")
+        return
+
+    path.mkdir(parents=True, exist_ok=True)
+    try:
+        path.chmod(0o700)
+    except PermissionError:
+        print(f"Warning: unable to chmod directory {path}", file=sys.stderr)
+
+
+def ensure_private_file(path: Path) -> None:
+    try:
+        path.chmod(0o600)
+    except PermissionError:
+        print(f"Warning: unable to chmod file {path}", file=sys.stderr)
+
+
+def warn_if_permissive(path: Path, label: str) -> None:
+    if not path.exists():
+        return
+
+    mode = stat.S_IMODE(path.stat().st_mode)
+    if mode & 0o077:
+        print(
+            f"Warning: {label} is readable/writable by group or others: "
+            f"{path} mode={mode:o}",
+            file=sys.stderr,
+        )
+
+
+def prompt_principal() -> str:
+    principal = input("Kerberos principal: ").strip()
+    if not principal:
+        raise SystemExit("Refusing to create a keytab for an empty principal.")
+    return principal
+
+
+def create_keytab_mit(temp_keytab: Path, principal: str, enctype: str, kvno: int, password: str) -> None:
+    commands = "\n".join(
+        [
+            f"addent -password -p {principal} -k {kvno} -e {enctype}",
+            password,
+            f"wkt {temp_keytab}",
+            "quit",
+            "",
+        ]
+    )
+
+    result = command_output(["ktutil"], input_text=commands)
+    if result.returncode != 0:
+        temp_keytab.unlink(missing_ok=True)
+        raise SystemExit(result.stderr.strip() or "Failed to create keytab with MIT ktutil.")
+
+
+def create_keytab_heimdal(temp_keytab: Path, principal: str, enctype: str, kvno: int, password: str) -> None:
+    result = command_output(
+        [
+            "ktutil",
+            "-k",
+            str(temp_keytab),
+            "add",
+            "-p",
+            principal,
+            "-V",
+            str(kvno),
+            "-e",
+            enctype,
+            "--pw-file=STDIN",
+        ],
+        input_text=f"{password}\n",
+    )
+    if result.returncode != 0:
+        temp_keytab.unlink(missing_ok=True)
+        raise SystemExit(result.stderr.strip() or "Failed to create keytab with Heimdal ktutil.")
+
+
+def create_keytab(keytab: Path, principal: str, enctype: str, kvno: int) -> None:
+    require_command("ktutil")
+    ensure_private_dir(keytab.parent)
+    temp_keytab = keytab.with_name(f".{keytab.name}.tmp-{os.getpid()}")
+    print("Detecting local ktutil flavor...", flush=True)
+    flavor = detect_ktutil_flavor()
+    print(f"Detected {flavor} ktutil. Enter Kerberos password next; input will not echo.", flush=True)
+
+    password = getpass.getpass("Kerberos password: ")
+    if not password:
+        raise SystemExit("Refusing to create a keytab from an empty password.")
+
+    if flavor == "mit":
+        create_keytab_mit(temp_keytab, principal, enctype, kvno, password)
+    else:
+        create_keytab_heimdal(temp_keytab, principal, enctype, kvno, password)
+
+    ensure_private_file(temp_keytab)
+    temp_keytab.replace(keytab)
+    ensure_private_file(keytab)
+    print(f"Created keytab with {flavor} ktutil: {keytab}")
+
+
+def parse_principals(text: str) -> list[str]:
+    principals: list[str] = []
+    for line in text.splitlines():
+        match = re.search(r"([A-Za-z0-9_.:/+-]+@[A-Za-z0-9._-]+)", line)
+        if match:
+            principal = match.group(1)
+            if principal not in principals:
+                principals.append(principal)
+    return principals
+
+
+def list_keytab_principals_mit(keytab: Path) -> list[str]:
+    require_command("klist")
+    result = command_output(
+        ["klist", "-kte", str(keytab)],
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.stderr.strip() or f"Failed to inspect keytab: {keytab}")
+    return parse_principals(result.stdout)
+
+
+def list_keytab_principals_heimdal(keytab: Path) -> list[str]:
+    require_command("ktutil")
+    result = command_output(
+        ["ktutil", "-k", str(keytab), "list"],
+    )
+    if result.returncode != 0:
+        raise SystemExit(result.stderr.strip() or f"Failed to inspect keytab: {keytab}")
+    return parse_principals(result.stdout)
+
+
+def list_keytab_principals(keytab: Path) -> list[str]:
+    flavor = detect_ktutil_flavor()
+    if flavor == "mit":
+        return list_keytab_principals_mit(keytab)
+    return list_keytab_principals_heimdal(keytab)
+
+
+def choose_principal(keytab: Path, explicit_principal: str | None) -> str:
+    if explicit_principal:
+        return explicit_principal
+
+    principals = list_keytab_principals(keytab)
+    if not principals:
+        raise SystemExit(f"No principal found in keytab: {keytab}")
+    if len(principals) > 1:
+        raise SystemExit(
+            "Multiple principals found in keytab. Re-run with --principal:\n"
+            + "\n".join(f"  {principal}" for principal in principals)
+        )
+    return principals[0]
+
+
+def run_kinit(keytab: Path, principal: str) -> int:
+    require_command("kinit")
+    warn_if_permissive(keytab, "keytab file")
+    result = subprocess.run(
+        ["kinit", "-k", "-t", str(keytab), principal],
+        check=False,
+    )
+    return result.returncode
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Create ~/.config/kerberos/client.keytab when needed, then run kinit with it."
+    )
+    parser.add_argument(
+        "--keytab",
+        type=Path,
+        default=DEFAULT_KEYTAB,
+        help=f"Kerberos keytab path. Default: {DEFAULT_KEYTAB}",
+    )
+    parser.add_argument(
+        "--principal",
+        help="Kerberos principal. Default: read from the keytab.",
+    )
+    parser.add_argument(
+        "--enctype",
+        default=DEFAULT_ENCTYPE,
+        help=f"Encryption type for ktutil. Default: {DEFAULT_ENCTYPE}",
+    )
+    parser.add_argument(
+        "--kvno",
+        type=int,
+        default=DEFAULT_KVNO,
+        help=f"Key version number for ktutil. Default: {DEFAULT_KVNO}",
+    )
+    parser.add_argument(
+        "--recreate",
+        action="store_true",
+        help="Recreate the keytab even if it already exists.",
+    )
+    parser.add_argument(
+        "--print-config",
+        action="store_true",
+        help="Print keytab path and principals found in it.",
+    )
+    return parser.parse_args()
+
+
+def print_config(keytab: Path) -> int:
+    print(f"keytab={keytab}")
+    print(f"keytab_exists={keytab.exists()}")
+    if keytab.exists():
+        warn_if_permissive(keytab, "keytab file")
+        principals = list_keytab_principals(keytab)
+        print("principals=" + (",".join(principals) if principals else "<not found>"))
+    return 0
+
+
+def main() -> int:
+    args = parse_args()
+
+    if args.print_config:
+        return print_config(args.keytab)
+
+    if args.recreate or not args.keytab.exists():
+        principal = args.principal or prompt_principal()
+        create_keytab(args.keytab, principal, args.enctype, args.kvno)
+    else:
+        principal = choose_principal(args.keytab, args.principal)
+
+    return run_kinit(args.keytab, principal)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
