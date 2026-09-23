@@ -10,6 +10,7 @@
 *~
 
 # secrets
+.secrets/
 *.keytab
 
 # platform specific
